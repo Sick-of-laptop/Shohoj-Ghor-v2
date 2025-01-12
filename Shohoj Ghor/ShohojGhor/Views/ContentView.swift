@@ -6,63 +6,54 @@ struct ContentView: View {
     @State private var showSidebar = false
     
     var body: some View {
-        Group {
-            if !authViewModel.isAuthenticated {
-                LoginView()
+        ZStack {
+            if authViewModel.isAuthenticated {
+                TabView(selection: $selectedTab) {
+                    HomeView(showSidebar: $showSidebar)
+                        .tabItem {
+                            Image(systemName: "house")
+                            Text("Home")
+                        }
+                        .tag(0)
+                    
+                    SearchView()
+                        .tabItem {
+                            Image(systemName: "magnifyingglass")
+                            Text("Search")
+                        }
+                        .tag(1)
+                    
+                    CartView()
+                        .tabItem {
+                            Image(systemName: "cart")
+                            Text("Cart")
+                        }
+                        .tag(2)
+                    
+                    NotificationsView()
+                        .tabItem {
+                            Image(systemName: "bell")
+                            Text("Notifications")
+                        }
+                        .tag(3)
+                    
+                    ProfileView()
+                        .tabItem {
+                            Image(systemName: "person")
+                            Text("Profile")
+                        }
+                        .tag(4)
+                }
+                .tint(ColorTheme.navigation)
+                
+                if showSidebar {
+                    SidebarView(showSidebar: $showSidebar)
+                }
             } else {
-                mainInterfaceView
+                LoginView()
             }
         }
         .environmentObject(authViewModel)
-    }
-    
-    var mainInterfaceView: some View {
-        ZStack {
-            TabView(selection: $selectedTab) {
-                HomeView(showSidebar: $showSidebar)
-                    .tabItem {
-                        Image(systemName: "house.fill")
-                        Text("Home")
-                    }
-                    .tag(0)
-                
-                SearchView()
-                    .tabItem {
-                        Image(systemName: "magnifyingglass")
-                        Text("Search")
-                    }
-                    .tag(1)
-                
-                NotificationsView()
-                    .tabItem {
-                        Image(systemName: "bell.fill")
-                        Text("Notifications")
-                    }
-                    .tag(2)
-                
-                CartView()
-                    .tabItem {
-                        Image(systemName: "cart.fill")
-                        Text("Cart")
-                    }
-                    .tag(3)
-                
-                ProfileView()
-                    .tabItem {
-                        Image(systemName: "person.fill")
-                        Text("Profile")
-                    }
-                    .tag(4)
-            }
-            .accentColor(ColorTheme.navigation)
-            
-            if showSidebar {
-                SidebarView(isShowing: $showSidebar)
-                    .environmentObject(authViewModel)
-                    .transition(.move(edge: .trailing))
-            }
-        }
-        .background(ColorTheme.background)
     }
 }
 

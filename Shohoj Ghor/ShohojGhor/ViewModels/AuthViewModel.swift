@@ -191,10 +191,9 @@ class AuthViewModel: ObservableObject {
             try Auth.auth().signOut()
             self.userSession = nil
             self.currentUser = nil
-            self.isAuthenticated = false
+            self.isAuthenticated = false  // This will trigger navigation to LoginView
         } catch {
-            self.errorMessage = error.localizedDescription
-            self.showError = true
+            print("Error signing out: \(error.localizedDescription)")
         }
     }
     
@@ -213,6 +212,64 @@ class AuthViewModel: ObservableObject {
                     
                     guard let data = snapshot?.data() else { return }
                     self.currentUser = User(data: data)
+                }
+            }
+    }
+    
+    func updateUserInfo(
+        fullName: String,
+        phone: String,
+        currentPassword: String,
+        newPassword: String,
+        completion: @escaping (Bool, String) -> Void
+    ) {
+        guard let user = Auth.auth().currentUser else {
+            completion(false, "User not found")
+            return
+        }
+        
+        let updateData: [String: Any] = [
+            "fullName": fullName,
+            "phone": phone
+        ]
+        
+        // Update profile information
+        Firestore.firestore().collection("users")
+            .document(user.uid)
+            .updateData(updateData) { [weak self] error in
+                if let error = error {
+                    completion(false, error.localizedDescription)
+                    return
+                }
+                
+                // If password change is requested
+                if !currentPassword.isEmpty && !newPassword.isEmpty {
+                    // Reauthenticate before password change
+                    let credential = EmailAuthProvider.credential(
+                        withEmail: user.email ?? "",
+                        password: currentPassword
+                    )
+                    
+                    user.reauthenticate(with: credential) { _, error in
+                        if let error = error {
+                            completion(false, "Current password is incorrect")
+                            return
+                        }
+                        
+                        // Change password
+                        user.updatePassword(to: newPassword) { error in
+                            if let error = error {
+                                completion(false, error.localizedDescription)
+                                return
+                            }
+                            
+                            self?.fetchUser(withUid: user.uid)
+                            completion(true, "Profile updated successfully")
+                        }
+                    }
+                } else {
+                    self?.fetchUser(withUid: user.uid)
+                    completion(true, "Profile updated successfully")
                 }
             }
     }
