@@ -5,6 +5,7 @@ struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var isAnimating = false
+    @State private var showAdminLogin = false
     
     var body: some View {
         NavigationView {
@@ -42,6 +43,7 @@ struct LoginView: View {
                             placeholderText: "Email",
                             text: $email
                         )
+                        .textInputAutocapitalization(.never)
                         .transition(.move(edge: .leading))
                         
                         CustomInputField(
@@ -80,6 +82,22 @@ struct LoginView: View {
                     }
                     .padding(.horizontal)
                     .padding(.top, 24)
+                    
+                    // Admin Login Button
+                    Button {
+                        showAdminLogin = true
+                    } label: {
+                        Text("Admin Login")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(Color.gray)
+                            .cornerRadius(25)
+                            .shadow(color: Color.gray.opacity(0.3), radius: 10, x: 0, y: 5)
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 12)
                     
                     Spacer()
                     
@@ -124,6 +142,9 @@ struct LoginView: View {
                 }
                 .animation(.easeInOut, value: viewModel.showSuccess)
             )
+        }
+        .fullScreenCover(isPresented: $showAdminLogin) {
+            AdminLoginView(showAdminLogin: $showAdminLogin)
         }
         .onAppear {
             withAnimation {

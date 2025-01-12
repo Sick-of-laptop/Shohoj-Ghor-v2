@@ -12,8 +12,10 @@ struct Product: Identifiable {
 }
 
 enum ProductCategory: String, CaseIterable {
-    case all = "All"
-    case popular = "Popular"
-    case forYou = "For You"
-    case new = "New"
+    case furniture = "Furniture"
+    case homeAppliances = "Home Appliances"
+    case homeDecor = "Home Decor"
+    case outdoor = "Outdoor"
+    case storage = "Storage"
+    case smartHome = "Smart Home"
 } 

@@ -13,17 +13,19 @@ struct CustomInputField: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)
-                    .foregroundColor(ColorTheme.navigation)
+                    .foregroundColor(ColorTheme.secondaryText)
                 
                 if isSecureField {
                     SecureField(placeholderText, text: $text)
+                        .textInputAutocapitalization(.never)
                 } else {
                     TextField(placeholderText, text: $text)
+                        .textInputAutocapitalization(.never)
                 }
             }
             
             Divider()
-                .background(ColorTheme.navigation)
+                .background(ColorTheme.secondaryText)
         }
         .padding(.horizontal)
         .padding(.vertical, 8)

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		555FCE1C2D342D4A008018BE /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 555FCE1B2D342D4A008018BE /* FirebaseDatabase */; };
+		555FCE1E2D342D4A008018BE /* FirebaseDatabaseSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 555FCE1D2D342D4A008018BE /* FirebaseDatabaseSwift */; };
 		55C2D0032D3420F800D38A55 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 55C2D0022D3420F800D38A55 /* FirebaseAnalytics */; };
 		55C2D0052D3420F800D38A55 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 55C2D0042D3420F800D38A55 /* FirebaseAuth */; };
 		55C2D0072D3420F800D38A55 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 55C2D0062D3420F800D38A55 /* FirebaseFirestore */; };
@@ -30,6 +32,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				555FCE1E2D342D4A008018BE /* FirebaseDatabaseSwift in Frameworks */,
+				555FCE1C2D342D4A008018BE /* FirebaseDatabase in Frameworks */,
 				55C2D0032D3420F800D38A55 /* FirebaseAnalytics in Frameworks */,
 				55C2D0092D3420F800D38A55 /* FirebaseStorage in Frameworks */,
 				55C2D0052D3420F800D38A55 /* FirebaseAuth in Frameworks */,
@@ -80,6 +84,8 @@
 				55C2D0042D3420F800D38A55 /* FirebaseAuth */,
 				55C2D0062D3420F800D38A55 /* FirebaseFirestore */,
 				55C2D0082D3420F800D38A55 /* FirebaseStorage */,
+				555FCE1B2D342D4A008018BE /* FirebaseDatabase */,
+				555FCE1D2D342D4A008018BE /* FirebaseDatabaseSwift */,
 			);
 			productName = "Shohoj Ghor";
 			productReference = 55C2CFB12D341FD100D38A55 /* Shohoj Ghor.app */;
@@ -353,6 +359,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		555FCE1B2D342D4A008018BE /* FirebaseDatabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 55C2D0012D3420F800D38A55 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseDatabase;
+		};
+		555FCE1D2D342D4A008018BE /* FirebaseDatabaseSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 55C2D0012D3420F800D38A55 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseDatabaseSwift;
+		};
 		55C2D0022D3420F800D38A55 /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 55C2D0012D3420F800D38A55 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

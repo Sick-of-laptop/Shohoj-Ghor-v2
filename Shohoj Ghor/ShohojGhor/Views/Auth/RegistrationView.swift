@@ -59,6 +59,7 @@ struct RegistrationView: View {
                             placeholderText: "Email",
                             text: $email
                         )
+                        .textInputAutocapitalization(.never)
                         
                         CustomInputField(
                             imageName: "phone",

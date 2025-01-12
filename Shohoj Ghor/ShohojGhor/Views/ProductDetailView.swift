@@ -85,7 +85,7 @@ struct ProductDetailView_Previews: PreviewProvider {
             price: 99.99,
             description: "Sample description",
             image: "photo",
-            category: .all,
+            category: .furniture,
             isPopular: true,
             isNew: false
         ))

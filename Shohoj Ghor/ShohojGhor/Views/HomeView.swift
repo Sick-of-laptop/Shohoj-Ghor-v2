@@ -2,7 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     @StateObject private var productViewModel = ProductViewModel()
-    @State private var selectedCategory: ProductCategory = .all
+    @State private var selectedCategory: ProductCategory = .furniture
     @State private var isAnimating = false
     @Binding var showSidebar: Bool
     
@@ -28,11 +28,11 @@ struct HomeView: View {
                     }
                     
                     // Featured Items with sliding
-                    FeaturedItemsView(products: productViewModel.filteredProducts(for: selectedCategory))
+                    FeaturedItemsView(products: productViewModel.popularProducts())
                         .opacity(isAnimating ? 1 : 0)
                         .offset(y: isAnimating ? 0 : 50)
                     
-                    // Popular Items Grid
+                    // Products Grid for selected category
                     PopularItemsGridView(products: productViewModel.filteredProducts(for: selectedCategory))
                         .opacity(isAnimating ? 1 : 0)
                         .offset(y: isAnimating ? 0 : 30)
@@ -68,7 +68,10 @@ struct CategoryButton: View {
         Button(action: action) {
             Text(title)
                 .fontWeight(.medium)
-                .padding(.horizontal, 20)
+                .font(.system(size: 14))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .padding(.horizontal, 16)
                 .padding(.vertical, 8)
                 .background(
                     Capsule()
