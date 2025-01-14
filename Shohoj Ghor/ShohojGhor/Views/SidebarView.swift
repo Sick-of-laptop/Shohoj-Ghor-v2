@@ -3,6 +3,7 @@ import SwiftUI
 struct SidebarView: View {
     @Binding var showSidebar: Bool
     @EnvironmentObject var authViewModel: AuthViewModel
+    @State private var showSpecFinder = false
     
     var body: some View {
         ZStack {
@@ -60,6 +61,11 @@ struct SidebarView: View {
                         MenuLink(title: "Favorites", icon: "heart.fill")
                         MenuLink(title: "Settings", icon: "gear")
                         MenuLink(title: "Help & Support", icon: "questionmark.circle.fill")
+                        MenuButton(
+                            title: "Specification Finder",
+                            icon: "magnifyingglass",
+                            action: { showSpecFinder = true }
+                        )
                     }
                     
                     Spacer()
@@ -90,6 +96,9 @@ struct SidebarView: View {
             }
             .offset(x: showSidebar ? 0 : -UIScreen.main.bounds.width)
         }
+        .sheet(isPresented: $showSpecFinder) {
+            SpecificationFinderView()
+        }
     }
 }
 
@@ -101,6 +110,24 @@ struct MenuLink: View {
         Button(action: {
             // Handle menu item tap
         }) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.title3)
+                Text(title)
+                    .fontWeight(.medium)
+            }
+            .foregroundColor(ColorTheme.text)
+        }
+    }
+}
+
+struct MenuButton: View {
+    let title: String
+    let icon: String
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
             HStack(spacing: 12) {
                 Image(systemName: icon)
                     .font(.title3)
