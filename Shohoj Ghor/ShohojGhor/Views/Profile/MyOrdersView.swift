@@ -66,14 +66,31 @@ struct OrderCard: View {
             ForEach(order.items) { item in
                 HStack(spacing: 12) {
                     // Product Image
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.2))
+                    if let url = URL(string: item.product.image) {
+                        AsyncImage(url: url) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        } placeholder: {
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.2))
+                                .overlay(
+                                    Image(systemName: "photo")
+                                        .foregroundColor(ColorTheme.secondaryText)
+                                )
+                        }
                         .frame(width: 60, height: 60)
-                        .cornerRadius(8)
-                        .overlay(
-                            Image(systemName: "photo")
-                                .foregroundColor(ColorTheme.secondaryText)
-                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    } else {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(width: 60, height: 60)
+                            .cornerRadius(8)
+                            .overlay(
+                                Image(systemName: "photo")
+                                    .foregroundColor(ColorTheme.secondaryText)
+                            )
+                    }
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Text(item.product.name)

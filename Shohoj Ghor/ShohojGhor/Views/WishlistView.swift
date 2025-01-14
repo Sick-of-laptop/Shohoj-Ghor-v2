@@ -67,14 +67,31 @@ struct WishlistItemCard: View {
     var body: some View {
         HStack(spacing: 16) {
             // Product Image
-            Rectangle()
-                .fill(Color.gray.opacity(0.2))
+            if let url = URL(string: product.image) {
+                AsyncImage(url: url) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.2))
+                        .overlay(
+                            Image(systemName: "photo")
+                                .foregroundColor(ColorTheme.secondaryText)
+                        )
+                }
                 .frame(width: 100, height: 100)
-                .cornerRadius(12)
-                .overlay(
-                    Image(systemName: "photo")
-                        .foregroundColor(ColorTheme.secondaryText)
-                )
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            } else {
+                Rectangle()
+                    .fill(Color.gray.opacity(0.2))
+                    .frame(width: 100, height: 100)
+                    .cornerRadius(12)
+                    .overlay(
+                        Image(systemName: "photo")
+                            .foregroundColor(ColorTheme.secondaryText)
+                    )
+            }
             
             // Product Info
             VStack(alignment: .leading, spacing: 8) {

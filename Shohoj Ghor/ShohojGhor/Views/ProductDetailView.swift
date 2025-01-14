@@ -13,24 +13,66 @@ struct ProductDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 // Image Carousel
-                TabView(selection: $selectedImageIndex) {
+                if let url = URL(string: product.image) {
+                    AsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.2))
+                            .overlay(
+                                Image(systemName: "photo")
+                                    .foregroundColor(ColorTheme.secondaryText)
+                            )
+                    }
+                    .frame(height: 300)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                } else {
                     Rectangle()
                         .fill(Color.gray.opacity(0.2))
-                        .aspectRatio(1, contentMode: .fit)
+                        .frame(height: 300)
                         .overlay(
                             Image(systemName: "photo")
                                 .foregroundColor(ColorTheme.secondaryText)
                         )
                 }
-                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic))
-                .frame(height: 300)
                 
                 VStack(alignment: .leading, spacing: 16) {
-                    // Product Info
-                    Text(product.name)
-                        .font(.title2)
-                        .fontWeight(.bold)
+                    HStack {
+                        Text(product.name)
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        Spacer()
+                        
+                        // Product Tags
+                        HStack(spacing: 8) {
+                            if product.isNew {
+                                Text("New")
+                                    .font(.caption2)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.blue)
+                                    .cornerRadius(8)
+                            }
+                            
+                            if product.isPopular {
+                                Text("Popular")
+                                    .font(.caption2)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.orange)
+                                    .cornerRadius(8)
+                            }
+                        }
+                    }
                     
+                    // Product Info
                     Text("$\(product.price, specifier: "%.2f")")
                         .font(.title3)
                         .foregroundColor(ColorTheme.navigation)

@@ -64,16 +64,27 @@ struct CartItemRow: View {
     @EnvironmentObject var cartViewModel: CartViewModel
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 16) {
             // Product Image
-            Rectangle()
-                .fill(Color.gray.opacity(0.2))
-                .frame(width: 80, height: 80)
-                .cornerRadius(8)
-                .overlay(
-                    Image(systemName: "photo")
-                        .foregroundColor(ColorTheme.secondaryText)
-                )
+            AsyncImage(url: URL(string: item.product.image)) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 80, height: 80)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                default:
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.2))
+                        .frame(width: 80, height: 80)
+                        .cornerRadius(12)
+                        .overlay(
+                            Image(systemName: "photo")
+                                .foregroundColor(ColorTheme.secondaryText)
+                        )
+                }
+            }
             
             VStack(alignment: .leading, spacing: 8) {
                 Text(item.product.name)

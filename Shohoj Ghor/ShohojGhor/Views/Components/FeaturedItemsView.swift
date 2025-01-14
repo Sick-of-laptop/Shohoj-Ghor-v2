@@ -31,14 +31,31 @@ struct FeaturedItemCard: View {
         NavigationLink(destination: ProductDetailView(product: product)) {
             VStack(alignment: .leading) {
                 // Product Image
-                Rectangle()
-                    .fill(Color.gray.opacity(0.2))
-                    .frame(width: 200, height: 200)
-                    .cornerRadius(12)
-                    .overlay(
-                        Image(systemName: "photo")
-                            .foregroundColor(ColorTheme.secondaryText)
-                    )
+                if let url = URL(string: product.image) {
+                    AsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.2))
+                            .overlay(
+                                Image(systemName: "photo")
+                                    .foregroundColor(ColorTheme.secondaryText)
+                            )
+                    }
+                    .frame(height: 200)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                } else {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.2))
+                        .frame(height: 200)
+                        .cornerRadius(12)
+                        .overlay(
+                            Image(systemName: "photo")
+                                .foregroundColor(ColorTheme.secondaryText)
+                        )
+                }
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(product.name)

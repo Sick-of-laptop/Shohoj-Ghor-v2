@@ -9,14 +9,25 @@ struct ProductCard: View {
         VStack(alignment: .leading) {
             ZStack(alignment: .topTrailing) {
                 // Product Image
-                Rectangle()
-                    .fill(Color.gray.opacity(0.2))
-                    .aspectRatio(1, contentMode: .fit)
-                    .cornerRadius(12)
-                    .overlay(
-                        Image(systemName: "photo")
-                            .foregroundColor(ColorTheme.secondaryText)
-                    )
+                AsyncImage(url: URL(string: product.image)) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(height: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    default:
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.2))
+                            .aspectRatio(1, contentMode: .fit)
+                            .cornerRadius(12)
+                            .overlay(
+                                Image(systemName: "photo")
+                                    .foregroundColor(ColorTheme.secondaryText)
+                            )
+                    }
+                }
                 
                 // Wishlist Button
                 Button {
@@ -50,17 +61,6 @@ struct ProductCard: View {
                 Text("$\(product.price, specifier: "%.2f")")
                     .font(.caption)
                     .foregroundColor(ColorTheme.navigation)
-                
-                if product.isNew {
-                    Text("New")
-                        .font(.caption2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.blue)
-                        .cornerRadius(8)
-                }
             }
             .padding(.horizontal, 8)
             .padding(.bottom, 8)
@@ -68,13 +68,6 @@ struct ProductCard: View {
         .background(ColorTheme.primary)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
-        .onChange(of: showingWishlistAnimation) { newValue in
-            if newValue {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                    showingWishlistAnimation = false
-                }
-            }
-        }
     }
 }
 
