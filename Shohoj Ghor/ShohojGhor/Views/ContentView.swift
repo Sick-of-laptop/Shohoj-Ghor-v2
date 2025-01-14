@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject var authViewModel = AuthViewModel()
+    @StateObject var cartViewModel = CartViewModel()
     @State private var selectedTab = 0
     @State private var showSidebar = false
     
@@ -54,6 +55,7 @@ struct ContentView: View {
             }
         }
         .environmentObject(authViewModel)
+        .environmentObject(cartViewModel)
     }
 }
 

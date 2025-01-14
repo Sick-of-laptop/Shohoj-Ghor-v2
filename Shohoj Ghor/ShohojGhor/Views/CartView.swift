@@ -1,60 +1,38 @@
 import SwiftUI
 
 struct CartView: View {
-    @State private var cartItems = [
-        CartItem(name: "Modern Sofa", price: 599.0, quantity: 1),
-        CartItem(name: "Table Lamp", price: 79.0, quantity: 2)
-    ]
-    
-    var totalAmount: Double {
-        cartItems.reduce(0) { $0 + ($1.price * Double($1.quantity)) }
-    }
+    @EnvironmentObject var cartViewModel: CartViewModel
+    @State private var showPayment = false
     
     var body: some View {
         NavigationView {
-            VStack {
-                if cartItems.isEmpty {
+            ScrollView {
+                if cartViewModel.cartItems.isEmpty {
                     EmptyCartView()
                 } else {
-                    ScrollView {
+                    VStack(spacing: 20) {
+                        // Cart Items
+                        ForEach(cartViewModel.cartItems) { item in
+                            CartItemRow(item: item)
+                                .environmentObject(cartViewModel)
+                        }
+                        
+                        // Order Summary
                         VStack(spacing: 16) {
-                            ForEach(cartItems) { item in
-                                CartItemRow(item: item)
+                            Text("Order Summary")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            HStack {
+                                Text("Total Amount")
+                                Spacer()
+                                Text("$\(cartViewModel.totalAmount, specifier: "%.2f")")
+                                    .fontWeight(.bold)
                             }
                             
-                            // Order Summary
-                            VStack(spacing: 16) {
-                                HStack {
-                                    Text("Subtotal")
-                                    Spacer()
-                                    Text("$\(totalAmount, specifier: "%.2f")")
-                                }
-                                
-                                HStack {
-                                    Text("Delivery")
-                                    Spacer()
-                                    Text("$10.00")
-                                }
-                                
-                                Divider()
-                                
-                                HStack {
-                                    Text("Total")
-                                        .fontWeight(.bold)
-                                    Spacer()
-                                    Text("$\(totalAmount + 10.0, specifier: "%.2f")")
-                                        .fontWeight(.bold)
-                                }
-                            }
-                            .padding()
-                            .background(ColorTheme.primary)
-                            .cornerRadius(12)
-                            .padding()
-                            
-                            // Checkout Button
-                            Button(action: {
-                                // Handle checkout
-                            }) {
+                            Button {
+                                showPayment = true
+                            } label: {
                                 Text("Proceed to Checkout")
                                     .fontWeight(.medium)
                                     .foregroundColor(.white)
@@ -63,94 +41,100 @@ struct CartView: View {
                                     .background(ColorTheme.navigation)
                                     .cornerRadius(12)
                             }
-                            .padding(.horizontal)
                         }
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(12)
+                        .shadow(color: Color.black.opacity(0.05), radius: 5)
                     }
+                    .padding()
                 }
             }
-            .navigationTitle("Cart")
             .background(ColorTheme.background)
+            .navigationTitle("Cart")
+            .sheet(isPresented: $showPayment) {
+                PaymentView()
+            }
         }
     }
 }
 
-struct CartItem: Identifiable {
-    let id = UUID()
-    let name: String
-    let price: Double
-    var quantity: Int
-}
-
 struct CartItemRow: View {
     let item: CartItem
+    @EnvironmentObject var cartViewModel: CartViewModel
     
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 12) {
             // Product Image
             Rectangle()
                 .fill(Color.gray.opacity(0.2))
                 .frame(width: 80, height: 80)
                 .cornerRadius(8)
+                .overlay(
+                    Image(systemName: "photo")
+                        .foregroundColor(ColorTheme.secondaryText)
+                )
             
-            VStack(alignment: .leading, spacing: 4) {
-                Text(item.name)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(item.product.name)
+                    .font(.headline)
                 
-                Text("$\(item.price, specifier: "%.2f")")
-                    .font(.caption)
+                Text("$\(item.product.price, specifier: "%.2f")")
                     .foregroundColor(ColorTheme.navigation)
                 
+                // Quantity Controls
                 HStack {
-                    Text("Quantity: \(item.quantity)")
-                        .font(.caption)
+                    Button {
+                        cartViewModel.updateQuantity(for: item, newQuantity: item.quantity - 1)
+                    } label: {
+                        Image(systemName: "minus.circle.fill")
+                    }
+                    
+                    Text("\(item.quantity)")
+                        .frame(width: 40)
+                    
+                    Button {
+                        cartViewModel.updateQuantity(for: item, newQuantity: item.quantity + 1)
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                    }
                 }
+                .foregroundColor(ColorTheme.navigation)
             }
             
             Spacer()
             
-            Button(action: {
-                // Remove item
-            }) {
+            // Remove Button
+            Button {
+                cartViewModel.removeFromCart(item: item)
+            } label: {
                 Image(systemName: "trash")
                     .foregroundColor(.red)
             }
         }
         .padding()
-        .background(ColorTheme.primary)
+        .background(Color.white)
         .cornerRadius(12)
-        .padding(.horizontal)
+        .shadow(color: Color.black.opacity(0.05), radius: 5)
     }
 }
 
 struct EmptyCartView: View {
-    @State private var showSidebar = false
-    
     var body: some View {
         VStack(spacing: 20) {
-            Image(systemName: "cart.badge.minus")
+            Image(systemName: "cart")
                 .font(.system(size: 60))
                 .foregroundColor(ColorTheme.secondaryText)
             
             Text("Your cart is empty")
-                .font(.title3)
+                .font(.title2)
                 .fontWeight(.medium)
             
-            Text("Browse our collection and add items to your cart")
-                .font(.subheadline)
+            Text("Browse our products and add items to your cart")
                 .foregroundColor(ColorTheme.secondaryText)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal)
-            
-            NavigationLink(destination: HomeView(showSidebar: $showSidebar)) {
-                Text("Start Shopping")
-                    .fontWeight(.medium)
-                    .foregroundColor(.white)
-                    .frame(width: 200)
-                    .padding()
-                    .background(ColorTheme.navigation)
-                    .cornerRadius(12)
-            }
         }
+        .padding()
+        .frame(maxHeight: .infinity)
     }
 } 

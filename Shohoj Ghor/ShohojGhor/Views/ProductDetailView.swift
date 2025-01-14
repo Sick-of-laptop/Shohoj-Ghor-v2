@@ -1,9 +1,11 @@
 import SwiftUI
 
 struct ProductDetailView: View {
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var cartViewModel: CartViewModel
     @State private var selectedImageIndex = 0
     @State private var quantity = 1
+    @State private var showAddedToCart = false
     
     let product: Product
     
@@ -58,7 +60,13 @@ struct ProductDetailView: View {
                     
                     // Add to Cart Button
                     Button(action: {
-                        // Add to cart logic
+                        cartViewModel.addToCart(product: product, quantity: quantity)
+                        showAddedToCart = true
+                        
+                        // Dismiss after short delay
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            dismiss()
+                        }
                     }) {
                         Text("Add to Cart")
                             .fontWeight(.medium)
@@ -72,6 +80,20 @@ struct ProductDetailView: View {
                 .padding()
             }
         }
+        .overlay(
+            // Success message
+            ZStack {
+                if showAddedToCart {
+                    Text("Added to Cart")
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.green.opacity(0.8))
+                        .cornerRadius(10)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+            .animation(.easeInOut, value: showAddedToCart)
+        )
         .navigationBarTitleDisplayMode(.inline)
         .background(ColorTheme.background)
     }
