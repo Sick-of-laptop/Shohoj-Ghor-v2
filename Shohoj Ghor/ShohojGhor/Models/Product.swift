@@ -18,4 +18,19 @@ enum ProductCategory: String, CaseIterable, Codable {
     case outdoor = "Outdoor"
     case storage = "Storage"
     case smartHome = "Smart Home"
+}
+
+extension Product {
+    var asDictionary: [String: Any] {
+        [
+            "id": id.uuidString,
+            "name": name,
+            "price": price,
+            "description": description,
+            "image": image,
+            "category": category.rawValue,
+            "isPopular": isPopular,
+            "isNew": isNew
+        ]
+    }
 } 

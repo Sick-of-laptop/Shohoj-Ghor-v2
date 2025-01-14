@@ -13,6 +13,8 @@ class CartViewModel: ObservableObject {
         }
     }
     
+    private let notificationViewModel = NotificationViewModel()
+    
     init() {
         loadCart()
         loadOrders()
@@ -58,6 +60,16 @@ class CartViewModel: ObservableObject {
             date: Date()
         )
         orderHistory.append(newOrder)
+        
+        // Add notification with properly formatted amount and item count
+        let itemCount = cartItems.reduce(0) { $0 + $1.quantity }
+        let formattedAmount = String(format: "%.2f", totalAmount)
+        let itemText = itemCount == 1 ? "item" : "items"
+        
+        notificationViewModel.addNotification(
+            type: .orderSuccess,
+            message: "Your order of \(itemCount) \(itemText) for $\(formattedAmount) has been confirmed! Thank you for shopping with us."
+        )
         
         // Clear cart
         cartItems.removeAll()

@@ -5,6 +5,8 @@ struct ProfileView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var showPersonalInfo = false
+    @State private var showMyOrders = false
+    @State private var showWishlist = false
     
     var body: some View {
         NavigationView {
@@ -29,18 +31,18 @@ struct ProfileView: View {
                             MenuItem(title: "My Orders", icon: "bag.fill", color: .blue),
                             MenuItem(title: "My Wishlist", icon: "heart.fill", color: .red),
                             MenuItem(title: "My Reviews", icon: "star.fill", color: .yellow)
-                        ], showPersonalInfo: $showPersonalInfo)
+                        ], showPersonalInfo: $showPersonalInfo, showMyOrders: $showMyOrders, showWishlist: $showWishlist)
                         
                         ProfileMenuSection(title: "Account", items: [
                             MenuItem(title: "Personal Info", icon: "person.fill", color: .green),
                             MenuItem(title: "Addresses", icon: "location.fill", color: .purple),
                             MenuItem(title: "Payment Methods", icon: "creditcard.fill", color: .orange)
-                        ], showPersonalInfo: $showPersonalInfo)
+                        ], showPersonalInfo: $showPersonalInfo, showMyOrders: $showMyOrders, showWishlist: $showWishlist)
                         
                         ProfileMenuSection(title: "Support", items: [
                             MenuItem(title: "Help Center", icon: "questionmark.circle.fill", color: .blue),
                             MenuItem(title: "Contact Us", icon: "message.fill", color: .green)
-                        ], showPersonalInfo: $showPersonalInfo)
+                        ], showPersonalInfo: $showPersonalInfo, showMyOrders: $showMyOrders, showWishlist: $showWishlist)
                     }
                     .padding(.horizontal)
                     
@@ -67,6 +69,12 @@ struct ProfileView: View {
             }
             .background(Color(.systemGray6))
             .navigationBarTitleDisplayMode(.inline)
+            .sheet(isPresented: $showMyOrders) {
+                MyOrdersView()
+            }
+            .sheet(isPresented: $showWishlist) {
+                WishlistView()
+            }
             .sheet(isPresented: $showPersonalInfo) {
                 PersonalInfoView()
             }
@@ -152,6 +160,8 @@ struct ProfileMenuSection: View {
     let title: String
     let items: [MenuItem]
     @Binding var showPersonalInfo: Bool
+    @Binding var showMyOrders: Bool
+    @Binding var showWishlist: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -163,10 +173,16 @@ struct ProfileMenuSection: View {
             VStack(spacing: 5) {
                 ForEach(items) { item in
                     Button {
-                        if item.title == "Personal Info" {
+                        switch item.title {
+                        case "Personal Info":
                             showPersonalInfo = true
+                        case "My Orders":
+                            showMyOrders = true
+                        case "My Wishlist":
+                            showWishlist = true
+                        default:
+                            break
                         }
-                        // Handle other menu items...
                     } label: {
                         HStack {
                             Image(systemName: item.icon)

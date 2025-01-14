@@ -53,6 +53,13 @@ class AdminPanelViewModel: ObservableObject {
         ]
         
         ref.child("products").childByAutoId().setValue(productDict)
+        
+        // Add global notification
+        NotificationViewModel().addNotification(
+            type: .newProduct,
+            message: "New product added: \(product.name)",
+            isGlobal: true
+        )
     }
     
     func deleteProduct(_ product: Product) {

@@ -1,80 +1,202 @@
 import SwiftUI
 
 struct NotificationsView: View {
-    @State private var notifications = [
-        NotificationItem(type: .order, title: "Order Confirmed", message: "Your order #1234 has been confirmed", time: "2m ago"),
-        NotificationItem(type: .delivery, title: "Out for Delivery", message: "Your order is on the way", time: "1h ago"),
-        NotificationItem(type: .promo, title: "Special Offer", message: "Get 20% off on all furniture", time: "3h ago")
-    ]
+    @StateObject private var viewModel = NotificationViewModel()
+    @State private var selectedNotification: AppNotification?
     
     var body: some View {
         NavigationView {
-            List {
-                ForEach(notifications) { notification in
-                    NotificationRow(notification: notification)
+            ZStack {
+                if viewModel.notifications.isEmpty {
+                    EmptyNotificationsView()
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 16) {
+                            ForEach(viewModel.notifications) { notification in
+                                NotificationCard(notification: notification)
+                                    .onTapGesture {
+                                        withAnimation {
+                                            selectedNotification = notification
+                                        }
+                                    }
+                            }
+                        }
+                        .padding()
+                    }
                 }
             }
-            .listStyle(PlainListStyle())
-            .navigationTitle("Notifications")
             .background(ColorTheme.background)
+            .navigationTitle("Notifications")
+            .sheet(item: $selectedNotification) { notification in
+                NotificationDetailView(notification: notification)
+            }
         }
     }
 }
 
-struct NotificationItem: Identifiable {
-    let id = UUID()
-    let type: NotificationType
-    let title: String
-    let message: String
-    let time: String
-}
-
-enum NotificationType {
-    case order, delivery, promo
-    
-    var icon: String {
-        switch self {
-        case .order: return "bag.circle.fill"
-        case .delivery: return "box.truck.fill"
-        case .promo: return "tag.circle.fill"
-        }
-    }
-    
-    var color: Color {
-        switch self {
-        case .order: return ColorTheme.navigation
-        case .delivery: return Color.green
-        case .promo: return Color.purple
-        }
-    }
-}
-
-struct NotificationRow: View {
-    let notification: NotificationItem
+struct NotificationCard: View {
+    let notification: AppNotification
     
     var body: some View {
         HStack(spacing: 16) {
-            Image(systemName: notification.type.icon)
-                .font(.title2)
-                .foregroundColor(notification.type.color)
-                .frame(width: 40, height: 40)
-                .background(notification.type.color.opacity(0.1))
-                .clipShape(Circle())
+            // Icon
+            Circle()
+                .fill(iconBackground)
+                .frame(width: 50, height: 50)
+                .overlay(
+                    Image(systemName: iconName)
+                        .foregroundColor(.white)
+                )
             
             VStack(alignment: .leading, spacing: 4) {
-                Text(notification.title)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                
                 Text(notification.message)
-                    .font(.caption)
-                    .foregroundColor(ColorTheme.secondaryText)
+                    .font(.subheadline)
+                    .foregroundColor(notification.isRead ? .gray : .primary)
                 
-                Text(notification.time)
-                    .font(.caption2)
-                    .foregroundColor(ColorTheme.secondaryText)
+                Text(timeAgo(from: notification.timestamp))
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            
+            Spacer()
+            
+            if !notification.isRead {
+                Circle()
+                    .fill(Color.blue)
+                    .frame(width: 8, height: 8)
             }
         }
-        .padding(.vertical, 8)
+        .padding()
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.05), radius: 5)
+        .transition(.scale.combined(with: .opacity))
+    }
+    
+    private var iconName: String {
+        switch notification.type {
+        case .orderSuccess: return "bag.fill"
+        case .newProduct: return "star.fill"
+        case .promotion: return "tag.fill"
+        case .system: return "bell.fill"
+        }
+    }
+    
+    private var iconBackground: Color {
+        switch notification.type {
+        case .orderSuccess: return .green
+        case .newProduct: return .blue
+        case .promotion: return .orange
+        case .system: return .gray
+        }
+    }
+    
+    private func timeAgo(from date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .short
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+}
+
+struct NotificationDetailView: View {
+    @Environment(\.dismiss) private var dismiss
+    let notification: AppNotification
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // Header
+                    HStack {
+                        Circle()
+                            .fill(getIconBackground(for: notification.type))
+                            .frame(width: 60, height: 60)
+                            .overlay(
+                                Image(systemName: getIconName(for: notification.type))
+                                    .foregroundColor(.white)
+                                    .font(.title2)
+                            )
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(getTitle(for: notification.type))
+                                .font(.headline)
+                            
+                            Text(timeAgo(from: notification.timestamp))
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    
+                    // Message
+                    Text(notification.message)
+                        .font(.body)
+                        .padding(.top)
+                }
+                .padding()
+            }
+            .background(ColorTheme.background)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(ColorTheme.navigation)
+                    }
+                }
+            }
+        }
+    }
+    
+    private func getTitle(for type: NotificationType) -> String {
+        switch type {
+        case .orderSuccess: return "Order Update"
+        case .newProduct: return "New Product"
+        case .promotion: return "Special Offer"
+        case .system: return "System Update"
+        }
+    }
+    
+    private func getIconName(for type: NotificationType) -> String {
+        switch type {
+        case .orderSuccess: return "bag.fill"
+        case .newProduct: return "star.fill"
+        case .promotion: return "tag.fill"
+        case .system: return "bell.fill"
+        }
+    }
+    
+    private func getIconBackground(for type: NotificationType) -> Color {
+        switch type {
+        case .orderSuccess: return .green
+        case .newProduct: return .blue
+        case .promotion: return .orange
+        case .system: return .gray
+        }
+    }
+    
+    private func timeAgo(from date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .short
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+}
+
+struct EmptyNotificationsView: View {
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "bell.slash")
+                .font(.system(size: 60))
+                .foregroundColor(ColorTheme.secondaryText)
+            
+            Text("No Notifications")
+                .font(.title2)
+                .fontWeight(.medium)
+            
+            Text("You're all caught up!")
+                .foregroundColor(ColorTheme.secondaryText)
+        }
+        .frame(maxHeight: .infinity)
     }
 } 
