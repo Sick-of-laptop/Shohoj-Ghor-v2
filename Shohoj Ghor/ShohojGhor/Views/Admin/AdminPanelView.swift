@@ -23,9 +23,7 @@ struct AdminPanelView: View {
                     // Products List
                     List {
                         ForEach(viewModel.products) { product in
-                            ProductRow(product: product) {
-                                viewModel.deleteProduct(product)
-                            }
+                            ProductRow(product: product)
                             .listRowBackground(Color.white.opacity(0.9))
                             .listRowSeparator(.hidden)
                             .padding(.vertical, 4)
@@ -89,7 +87,7 @@ struct StatCard: View {
 
 struct ProductRow: View {
     let product: Product
-    let onDelete: () -> Void
+    @State private var showUpdateSheet = false
     
     var body: some View {
         HStack(spacing: 16) {
@@ -124,18 +122,19 @@ struct ProductRow: View {
             
             Spacer()
             
-            Button {
-                onDelete()
-            } label: {
-                Image(systemName: "trash.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(.red)
-            }
+            Image(systemName: "chevron.right")
+                .foregroundColor(ColorTheme.secondaryText)
         }
         .padding()
         .background(Color.white)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+        .onTapGesture {
+            showUpdateSheet = true
+        }
+        .sheet(isPresented: $showUpdateSheet) {
+            UpdateProductView(product: product)
+        }
     }
 }
 

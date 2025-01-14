@@ -67,7 +67,42 @@ class AdminPanelViewModel: ObservableObject {
         ref.child("products").queryOrdered(byChild: "name").queryEqual(toValue: product.name)
             .observeSingleEvent(of: .value) { snapshot in
                 if let first = snapshot.children.allObjects.first as? DataSnapshot {
+                    // Delete the product
                     self.ref.child("products").child(first.key).removeValue()
+                    
+                    // Add notification for product deletion
+                    NotificationViewModel().addNotification(
+                        type: .system,
+                        message: "Product deleted: \(product.name)",
+                        isGlobal: true
+                    )
+                }
+            }
+    }
+    
+    func updateProduct(_ oldProduct: Product, with newProduct: Product) {
+        // Find the product key first
+        ref.child("products").queryOrdered(byChild: "name").queryEqual(toValue: oldProduct.name)
+            .observeSingleEvent(of: .value) { snapshot in
+                if let first = snapshot.children.allObjects.first as? DataSnapshot {
+                    let productDict: [String: Any] = [
+                        "name": newProduct.name,
+                        "price": newProduct.price,
+                        "description": newProduct.description,
+                        "image": newProduct.image,
+                        "category": newProduct.category.rawValue,
+                        "isPopular": newProduct.isPopular,
+                        "isNew": newProduct.isNew
+                    ]
+                    
+                    self.ref.child("products").child(first.key).updateChildValues(productDict)
+                    
+                    // Add notification for product update
+                    NotificationViewModel().addNotification(
+                        type: .system,
+                        message: "Product updated: \(newProduct.name)",
+                        isGlobal: true
+                    )
                 }
             }
     }
