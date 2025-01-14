@@ -2,24 +2,46 @@ import SwiftUI
 
 struct MyOrdersView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var cartViewModel: CartViewModel
+    @StateObject private var viewModel = MyOrderViewModel()
+    @State private var showAnimation = false
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                if cartViewModel.orderHistory.isEmpty {
+            ZStack {
+                ColorTheme.background
+                    .ignoresSafeArea()
+                
+                if viewModel.isLoading {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                } else if let error = viewModel.error {
+                    ErrorView(message: error, retryAction: {
+                        viewModel.refreshOrders()
+                    })
+                } else if viewModel.orders.isEmpty {
                     EmptyOrdersView()
                 } else {
-                    VStack(spacing: 20) {
-                        ForEach(cartViewModel.orderHistory.sorted(by: { $0.date > $1.date })) { order in
-                            OrderCard(order: order)
-                                .transition(.scale.combined(with: .opacity))
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            ForEach(viewModel.orders) { order in
+                                OrderCard(order: order, viewModel: viewModel)
+                                    .transition(.scale.combined(with: .opacity))
+                                    .opacity(showAnimation ? 1 : 0)
+                                    .offset(y: showAnimation ? 0 : 50)
+                                    .animation(
+                                        .spring(response: 0.5, dampingFraction: 0.8)
+                                        .delay(Double(viewModel.orders.firstIndex(where: { $0.id == order.id }) ?? 0) * 0.1),
+                                        value: showAnimation
+                                    )
+                            }
                         }
+                        .padding()
                     }
-                    .padding()
+                    .refreshable {
+                        viewModel.refreshOrders()
+                    }
                 }
             }
-            .background(ColorTheme.background)
             .navigationTitle("My Orders")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -34,18 +56,27 @@ struct MyOrdersView: View {
                 }
             }
         }
+        .onAppear {
+            withAnimation {
+                showAnimation = true
+            }
+        }
+        .onDisappear {
+            showAnimation = false
+        }
     }
 }
 
 struct OrderCard: View {
     let order: Order
+    let viewModel: MyOrderViewModel
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Order Header
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Order #\(order.id.uuidString.prefix(8))")
+                    Text("Order #\(order.id.prefix(8))")
                         .font(.headline)
                     
                     Text(formatDate(order.date))
@@ -64,59 +95,17 @@ struct OrderCard: View {
             
             // Order Items
             ForEach(order.items) { item in
-                HStack(spacing: 12) {
-                    // Product Image
-                    if let url = URL(string: item.product.image) {
-                        AsyncImage(url: url) { image in
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        } placeholder: {
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.2))
-                                .overlay(
-                                    Image(systemName: "photo")
-                                        .foregroundColor(ColorTheme.secondaryText)
-                                )
-                        }
-                        .frame(width: 60, height: 60)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                    } else {
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.2))
-                            .frame(width: 60, height: 60)
-                            .cornerRadius(8)
-                            .overlay(
-                                Image(systemName: "photo")
-                                    .foregroundColor(ColorTheme.secondaryText)
-                            )
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(item.product.name)
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                        
-                        Text("Quantity: \(item.quantity)")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                        
-                        Text("$\(item.product.price * Double(item.quantity), specifier: "%.2f")")
-                            .font(.caption)
-                            .foregroundColor(ColorTheme.navigation)
-                    }
-                    
-                    Spacer()
-                }
+                OrderItemRow(item: item)
             }
             
             // Order Status
+            let (status, color) = viewModel.getOrderStatus(order)
             HStack {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.green)
-                Text("Delivered")
+                    .foregroundColor(color)
+                Text(status)
                     .font(.caption)
-                    .foregroundColor(.green)
+                    .foregroundColor(color)
             }
             .padding(.top, 8)
         }
@@ -131,6 +120,75 @@ struct OrderCard: View {
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         return formatter.string(from: date)
+    }
+}
+
+struct OrderItemRow: View {
+    let item: CartItem
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            AsyncImage(url: URL(string: item.product.image)) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                case .failure(_):
+                    Image(systemName: "photo")
+                        .foregroundColor(ColorTheme.secondaryText)
+                case .empty:
+                    ProgressView()
+                @unknown default:
+                    EmptyView()
+                }
+            }
+            .frame(width: 60, height: 60)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.product.name)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                
+                Text("Quantity: \(item.quantity)")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                
+                Text("$\(item.product.price * Double(item.quantity), specifier: "%.2f")")
+                    .font(.caption)
+                    .foregroundColor(ColorTheme.navigation)
+            }
+            
+            Spacer()
+        }
+    }
+}
+
+struct ErrorView: View {
+    let message: String
+    let retryAction: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("Error")
+                .font(.headline)
+                .foregroundColor(.red)
+            
+            Text(message)
+                .foregroundColor(ColorTheme.secondaryText)
+                .multilineTextAlignment(.center)
+            
+            Button(action: retryAction) {
+                Text("Retry")
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(ColorTheme.navigation)
+                    .cornerRadius(8)
+            }
+        }
+        .padding()
     }
 }
 
